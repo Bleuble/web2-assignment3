@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blogging Platform - CRUD Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .app-status {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .status-card {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .status-connected {
+            background: #2ecc71;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-disconnected {
+            background: #e74c3c;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-section, .blogs-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            font-size: 1.4rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 500;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-create {
+            background: #3498db;
+            color: white;
+            flex: 1;
+        }
+        
+        .btn-create:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-update {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .btn-update:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+        
+        .btn-clear {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-clear:hover {
+            background: #7f8c8d;
+        }
+        
+        .blog-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .blog-card {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s;
+        }
+        
+        .blog-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .blog-title {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .blog-body {
+            color: #34495e;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .blog-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .blog-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-edit, .btn-delete {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        
+        .btn-edit {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background: #d68910;
+        }
+        
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+        
+        .no-blogs {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 40px;
+            font-style: italic;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #3498db;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .success {
+            background: #2ecc71;
+        }
+        
+        .error {
+            background: #e74c3c;
+        }
+        
+        .info {
+            background: #3498db;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #7f8c8d;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Blogging Platform</h1>
+            <p class="subtitle">A full CRUD interface for managing blog posts</p>
+        </header>
+        
+        <div class="app-status">
+            <div class="status-card">
+                <div class="status-indicator status-connected" id="serverStatus"></div>
+                <span>API Server: <span id="serverText">Checking...</span></span>
+            </div>
+            <div class="status-card">
+                <div class="status-indicator" id="dbStatus"></div>
+                <span>Database: <span id="dbText">Checking...</span></span>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="form-section">
+                <h2 class="section-title">Create/Edit Blog Post</h2>
+                <form id="blogForm">
+                    <input type="hidden" id="blogId">
+                    
+                    <div class="form-group">
+                        <label for="title">Title *</label>
+                        <input type="text" id="title" placeholder="Enter blog title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="author">Author</label>
+                        <input type="text" id="author" placeholder="Enter author name (default: Anonymous)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="body">Content *</label>
+                        <textarea id="body" placeholder="Write your blog content here..." required></textarea>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button type="submit" class="btn-create" id="submitBtn">Create Post</button>
+                        <button type="button" class="btn-update" id="updateBtn" style="display: none;">Update Post</button>
+                        <button type="button" class="btn-clear" id="clearBtn">Clear Form</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="blogs-section">
+                <h2 class="section-title">Blog Posts</h2>
+                <div id="blogList" class="blog-list">
+                    <div class="loading">Loading blog posts...</div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Built with Node.js, Express, MongoDB, and Vanilla JavaScript</p>
+            <p>Total Posts: <span id="totalPosts">0</span></p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

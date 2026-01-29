@@ -19,10 +19,10 @@ const blogSchema = new mongoose.Schema({
     trim: true
   }
 }, {
-  timestamps: true // Добавит createdAt и updatedAt автоматически
+  timestamps: true 
 });
 
-// Middleware для обновления updatedAt перед сохранением
+
 blogSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();

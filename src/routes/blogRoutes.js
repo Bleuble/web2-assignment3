@@ -10,7 +10,7 @@ router.post('/', async (req, res) => {
     
     const { title, body, author } = req.body;
 
-    // Проверка обязательных полей
+    
     if (!title || !body) {
       console.log('❌ Validation failed: Title or body missing');
       return res.status(400).json({
@@ -19,7 +19,7 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Создаем новый пост
+    
     const blog = new Blog({
       title,
       body,
@@ -28,7 +28,7 @@ router.post('/', async (req, res) => {
 
     console.log('💾 Attempting to save blog to database...');
     
-    // Сохраняем в базу
+    
     const savedBlog = await blog.save();
     
     console.log('✅ Blog saved successfully:', savedBlog._id);
@@ -43,7 +43,7 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('🔥 POST Error:', error);
     
-    // Обработка ошибок валидации Mongoose
+    
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Проверка ошибок подключения MongoDB
+    
     if (error.name === 'MongoServerError') {
       console.error('🗄️ MongoDB Server Error:', error.code, error.message);
     }
@@ -66,7 +66,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// 📌 GET /blogs - Retrieve all blog posts
+
 router.get('/', async (req, res) => {
   try {
     console.log('📖 GET /blogs - Fetching all blogs');
@@ -92,7 +92,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 📌 GET /blogs/:id - Retrieve a single blog post by ID
+
 router.get('/:id', async (req, res) => {
   try {
     console.log('🔍 GET /blogs/:id - Looking for blog with ID:', req.params.id);
@@ -116,7 +116,7 @@ router.get('/:id', async (req, res) => {
   } catch (error) {
     console.error('🔥 GET by ID Error:', error);
     
-    // Если ID невалидный
+    
     if (error.name === 'CastError') {
       return res.status(400).json({
         success: false,
@@ -132,7 +132,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// 📌 PUT /blogs/:id - Update a blog post by ID
+
 router.put('/:id', async (req, res) => {
   try {
     console.log('🔄 PUT /blogs/:id - Updating blog with ID:', req.params.id);
@@ -140,7 +140,7 @@ router.put('/:id', async (req, res) => {
     
     const { title, body, author } = req.body;
 
-    // Проверяем, что есть что обновлять
+    
     if (!title && !body && !author) {
       return res.status(400).json({
         success: false,
@@ -148,19 +148,19 @@ router.put('/:id', async (req, res) => {
       });
     }
 
-    // Подготавливаем объект для обновления
+    
     const updateData = {};
     if (title) updateData.title = title;
     if (body) updateData.body = body;
     if (author !== undefined) updateData.author = author;
 
-    // Находим и обновляем
+    
     const updatedBlog = await Blog.findByIdAndUpdate(
       req.params.id,
       updateData,
       { 
-        new: true, // Вернуть обновленный документ
-        runValidators: true // Запустить валидацию
+        new: true, 
+        runValidators: true 
       }
     );
 
@@ -206,7 +206,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// 📌 DELETE /blogs/:id - Delete a blog post by ID
+
 router.delete('/:id', async (req, res) => {
   try {
     console.log('🗑️ DELETE /blogs/:id - Deleting blog with ID:', req.params.id);

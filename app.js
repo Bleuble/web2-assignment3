@@ -1,15 +1,16 @@
 
-// app.js
+
 const express = require('express');
 const connectDB = require('./src/config/db');
 const cors = require('cors');
-const mongoose = require('mongoose');  // ОДНО объявление!
+const mongoose = require('mongoose');
+const path = require('path'); // Add this line
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Мониторинг событий подключения MongoDB
+
 mongoose.connection.on('connecting', () => {
   console.log('🔄 Mongoose connecting to MongoDB...');
 });
@@ -38,34 +39,43 @@ mongoose.connection.on('reconnected', () => {
   console.log('🔁 Mongoose reconnected to MongoDB');
 });
 
-// Middleware
-app.use(cors()); // Разрешить запросы с фронтенда
-app.use(express.json()); // Для парсинга JSON
-app.use(express.urlencoded({ extended: true })); // Для form-data
 
-// Подключение к базе данных
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+
 connectDB();
 
-// Простой тестовый маршрут
-app.get('/', (req, res) => {
+
+const blogRoutes = require('./src/routes/blogRoutes');
+app.use('/api/blogs', blogRoutes); 
+
+
+app.get('/api', (req, res) => {
   res.json({ 
     message: '🚀 Blogging Platform API is running!',
     endpoints: {
-      'GET /blogs': 'Get all blog posts',
-      'GET /blogs/:id': 'Get single blog post',
-      'POST /blogs': 'Create new blog post',
-      'PUT /blogs/:id': 'Update blog post',
-      'DELETE /blogs/:id': 'Delete blog post'
+      'GET /api/blogs': 'Get all blog posts',
+      'GET /api/blogs/:id': 'Get single blog post',
+      'POST /api/blogs': 'Create new blog post',
+      'PUT /api/blogs/:id': 'Update blog post',
+      'DELETE /api/blogs/:id': 'Delete blog post',
+      'GET /api/health': 'Check API health'
     },
     documentation: {
-      'POST /blogs': 'Requires: {title: string, body: string, author?: string}',
-      'PUT /blogs/:id': 'Requires at least one field to update'
-    }
+      'POST /api/blogs': 'Requires: {title: string, body: string, author?: string}',
+      'PUT /api/blogs/:id': 'Requires at least one field to update'
+    },
+    frontend: 'Visit the root URL (/) for the web interface'
   });
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+
+app.get('/api/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState;
   const status = dbStatus === 1 ? 'healthy' : 'unhealthy';
   
@@ -73,36 +83,40 @@ app.get('/health', (req, res) => {
     status: status,
     timestamp: new Date().toISOString(),
     database: dbStatus === 1 ? 'connected' : 'disconnected',
-    dbStatus: dbStatus, // 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+    dbStatus: dbStatus, 
     uptime: process.uptime(),
-    memory: process.memoryUsage()
+    memory: process.memoryUsage(),
+    environment: process.env.NODE_ENV,
+    port: PORT
   });
 });
 
-// 📌 Blog Routes
-const blogRoutes = require('./src/routes/blogRoutes');
-app.use('/blogs', blogRoutes);
 
-// Обработка 404 - ТОЛЬКО ОДИН РАЗ!
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'Route not found',
-    path: req.path,
-    method: req.method,
-    availableEndpoints: [
-      'GET /',
-      'GET /health',
-      'GET /blogs',
-      'GET /blogs/:id',
-      'POST /blogs',
-      'PUT /blogs/:id',
-      'DELETE /blogs/:id'
-    ]
-  });
+app.get('*', (req, res) => {
+  
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({
+      success: false,
+      error: 'API endpoint not found',
+      path: req.path,
+      method: req.method,
+      availableEndpoints: [
+        'GET /api',
+        'GET /api/health',
+        'GET /api/blogs',
+        'GET /api/blogs/:id',
+        'POST /api/blogs',
+        'PUT /api/blogs/:id',
+        'DELETE /api/blogs/:id'
+      ]
+    });
+  }
+  
+  
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Глобальная обработка ошибок
+
 app.use((err, req, res, next) => {
   console.error('🔥 Server Error:', err.message);
   console.error('📋 Stack:', err.stack);
@@ -115,7 +129,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Запуск сервера только после подключения к БД
+
 mongoose.connection.once('open', () => {
   app.listen(PORT, () => {
     console.log(`\n✨ =========================================== ✨`);
@@ -126,21 +140,29 @@ mongoose.connection.once('open', () => {
     console.log(`🔗 Connection: ${mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Disconnected'}`);
     console.log(`✨ =========================================== ✨\n`);
     
-    console.log('📋 Available endpoints:');
-    console.log(`   🌐 Main:      GET  http://localhost:${PORT}/`);
-    console.log(`   ❤️  Health:    GET  http://localhost:${PORT}/health`);
-    console.log(`   📖 Read All:  GET  http://localhost:${PORT}/blogs`);
-    console.log(`   📝 Read One:  GET  http://localhost:${PORT}/blogs/:id`);
-    console.log(`   ✨ Create:    POST http://localhost:${PORT}/blogs`);
-    console.log(`   🔄 Update:    PUT  http://localhost:${PORT}/blogs/:id`);
-    console.log(`   🗑️  Delete:    DELETE http://localhost:${PORT}/blogs/:id`);
+    console.log('🎯 Frontend Interface:');
+    console.log(`   🌐 Web Interface: http://localhost:${PORT}/\n`);
+    
+    console.log('📋 API Endpoints:');
+    console.log(`   📖 API Docs:     GET  http://localhost:${PORT}/api`);
+    console.log(`   ❤️  Health:       GET  http://localhost:${PORT}/api/health`);
+    console.log(`   📖 Read All:     GET  http://localhost:${PORT}/api/blogs`);
+    console.log(`   📝 Read One:     GET  http://localhost:${PORT}/api/blogs/:id`);
+    console.log(`   ✨ Create:       POST http://localhost:${PORT}/api/blogs`);
+    console.log(`   🔄 Update:       PUT  http://localhost:${PORT}/api/blogs/:id`);
+    console.log(`   🗑️  Delete:       DELETE http://localhost:${PORT}/api/blogs/:id`);
     console.log('');
-    console.log('⚡ Test with: curl -X GET http://localhost:' + PORT + '/blogs');
+    
+    console.log('🔧 Quick Tests:');
+    console.log(`   curl -X GET http://localhost:${PORT}/api/blogs`);
+    console.log(`   curl -X GET http://localhost:${PORT}/api/health`);
     console.log('');
+    
+    console.log('💡 Tip: Open http://localhost:' + PORT + ' in your browser for the web interface!');
   });
 });
 
-// Обработка graceful shutdown
+
 process.on('SIGINT', async () => {
   console.log('\n👋 Received SIGINT. Closing connections...');
   
@@ -153,5 +175,5 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-// Экспорт для тестирования
+
 module.exports = app;
